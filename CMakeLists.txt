@@ -4,4 +4,4 @@ project(virtcpu C)
 set(CMAKE_C_STANDARD 99)
 
 add_executable(virtcpu main.c
-        vUnitBase.c)
+        v_unit.c)

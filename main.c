@@ -1,29 +1,45 @@
 #include <stdio.h>
+#include <string.h>
 
-#include "vUnitBase.h"
+#include "v_unit.h"
 
 int main() {
-    vUnitBase* unit = vUnitBase_new(
-        8,
-        1024,
-        4096
-    );
-    int num = 0xFFFA;
-    int address = 0x100;
+    v_unit* v = v_unit_new(34, 1024);
 
-    unit->ops->pushByte(unit, OP_LOAD_32);
-    unit->ops->pushByte(unit, 5);
-    unit->ops->pushData(unit, &address, 4);
-    unit->ops->setData(unit, &num, 4, address);
+    int c;
+    int iter = 0;
+    unsigned char prog[1024];
+    FILE* f = fopen("output.bin", "r");
+    if (!f) return 0;
+    while (( c= fgetc(f)) != EOF) {
+        prog[iter] = (char)c;
+        //printf("%5d", c);
+        iter+=1;
+        if (iter % 16 == 0 && iter != 0) {
+            //printf("\n");
+        }
+        else {
+            //printf(" ");
+        }
+    }
+    //printf("\n");
+    fclose(f);
 
-    while (!unit->halted) {
-        unit->ops->execute(unit);
+    uint8_t* ptr = (uint8_t*)v;
+    memcpy(ptr+v->program.offset, prog, iter);
+    for (int i = 0; i < 1024; i++) {
+        printf("%d ", *(unsigned char*)(ptr+v->program.offset+i));
     }
 
-    unit->ops->memory_dump(unit);
+    iter = 0;
+    printf("\n");
+    while (iter < 1024) {
+        if (v->ops->step(v) <= 0) {
+            printf("%x\n", v->pc);
 
-    for (int i = 0; i < 8; i++) {
-        printf("%x\n", unit->ops->getRegValue(unit, i));
+            break;
+        }
+        iter+=1;
     }
     return 0;
 }
